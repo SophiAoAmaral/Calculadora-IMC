@@ -39,43 +39,137 @@ const data = [
 
 //seleçaõ dos elementos
 
-const imcTable = document.querySelector("#imc-table")
-
-const heightInput = document.querySelector("#height")// input que vai informar a altura
-const weightInput =document.querySelector("#weight")//input que vai dar o valor do peso
-const calxBtn = document.querySelector("#calc-btn")//botao que calcula
-
-const clearBtn = document.querySelector("#clear-btn")//botao que limpa
 
 
+// Seleção de elementos
+const imcTable = document.querySelector("#imc-table");
 
-//funcoes
-function createTable(data){
-    data.forEach((item) => {//criando um loop
-        const div = document.createElement("div")//criando uma div
-        div.classList.add("table-data")//dando uma class p ela
+const heightInput = document.querySelector("#height");
+const weightInput = document.querySelector("#weight");
+const calcBtn = document.querySelector("#calc-btn");
+const clearBtn = document.querySelector("#clear-btn");
 
-        const classification = document.createElement("p")//criando um elemento p com o mesmo"nome" do data q passa os dados
-        classification.innerText = item.classification //colocando o texto que esta dentro do array de data
+const calcContainer = document.querySelector("#calc-container");
+const resultContainer = document.querySelector("#result-container");
 
-        const info = document.createElement("p")//criando um elemento p com o mesmo"nome" do data q passa os dados
-        info.innerText = item.info//colocando o texto que esta dentro do array de data
+const imcNumber = document.querySelector("#imc-number span");
+const imcInfo = document.querySelector("#imc-info span");
 
-        const obesity = document.createElement("p")//criando um elemento p com o mesmo"nome" do data q passa os dados
-        obesity.innerText = item.obesity//colocando o texto que esta dentro do array de data
+const backBtn = document.querySelector("#back-btn");
 
-        div.appendChild(classification)//colocando os elementso criados dentro da div criada
-        div.appendChild(info)
-        div.appendChild(obesity)
+// Funções
+function createTable(data) {
+  data.forEach((item) => {
+    const div = document.createElement("div");
+    div.classList.add("table-data");
 
-        imcTable.appendChild(div)//colocando a div dentro da div q recebeu oo nome de IMCtable
-    });
+    const classification = document.createElement("p");
+    classification.innerText = item.classification;
+
+    const info = document.createElement("p");
+    info.innerText = item.info;
+
+    const obesity = document.createElement("p");
+    obesity.innerText = item.obesity;
+
+    div.appendChild(classification);
+    div.appendChild(info);
+    div.appendChild(obesity);
+
+    imcTable.appendChild(div);
+  });
 }
 
+function validDigits(text) {
+  return text.replace(/[^0-9,]/g, "");
+}
 
+function calcImc(height, weight) {
+  const imc = (weight / (height * height)).toFixed(1);
+  return imc;
+}
 
-//inicialização
-createTable(data)
+function cleanInputs() {
+  heightInput.value = "";
+  weightInput.value = "";
+  imcNumber.className = "";
+  imcInfo.className = "";
+}
 
+function showOrHideResults() {
+  calcContainer.classList.toggle("hide");
+  resultContainer.classList.toggle("hide");
+}
 
-//eventos
+// Init
+createTable(data);
+
+// Eventos
+[heightInput, weightInput].forEach((el) => {
+  el.addEventListener("input", (e) => {
+    const updatedValue = validDigits(e.target.value);
+
+    e.target.value = updatedValue;
+  });
+});
+
+calcBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  const weight = +weightInput.value.replace(",", ".");
+  const height = +heightInput.value.replace(",", ".");
+
+  console.log(weight, height);
+
+  if (!weight || !height) return;
+
+  const imc = calcImc(height, weight);
+  let info;
+
+  data.forEach((item) => {
+    if (imc >= item.min && imc <= item.max) {
+      info = item.info;
+    }
+  });
+
+  if (!info) return;
+
+  imcNumber.innerText = imc;
+  imcInfo.innerText = info;
+
+  switch (info) {
+    case "Magreza":
+      imcNumber.classList.add("low");
+      imcInfo.classList.add("low");
+      break;
+    case "Normal":
+      imcNumber.classList.add("good");
+      imcInfo.classList.add("good");
+      break;
+    case "Sobrepeso":
+      imcNumber.classList.add("low");
+      imcInfo.classList.add("low");
+      break;
+    case "Obesidade":
+      imcNumber.classList.add("medium");
+      imcInfo.classList.add("medium");
+      break;
+    case "Obesidade grave":
+      imcNumber.classList.add("high");
+      imcInfo.classList.add("high");
+      break;
+  }
+
+  showOrHideResults();
+});
+
+clearBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  cleanInputs();
+});
+
+backBtn.addEventListener("click", (e) => {
+  cleanInputs();
+  showOrHideResults();
+});
